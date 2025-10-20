@@ -121,10 +121,6 @@ export default function App() {
       // correct: increment score and prepare next random word
       setWon(true);
       setScore((s) => s + 1);
-      // after a short delay to show animation, pick next word
-      setTimeout(() => {
-        pickRandomWord(false);
-      }, 900);
     }
   }
 
