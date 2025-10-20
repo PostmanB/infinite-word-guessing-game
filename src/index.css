@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minimal app-specific utilities (optional) */
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 min-h-screen flex items-start justify-center;
+    font-family: Inter, system-ui, Arial, sans-serif;
+  }
+}
+
+/* Tile flip animation */
+@keyframes flipIn {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(-90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+.tile {
+  backface-visibility: hidden;
+}
+
+.flip {
+  animation: flipIn 480ms ease-in-out both;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* subtle key shadow for mobile */
+.shadow-key {
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* shake for invalid guess */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.shake {
+  animation: shake 360ms ease-in-out;
+}
+
+.toast {
+  animation: toastIn 180ms ease-out;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
