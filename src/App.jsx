@@ -40,12 +40,20 @@ export default function App() {
   const [secretChars, setSecretChars] = useState([]);
   const [score, setScore] = useState(0);
   const toastTimer = useRef(null);
+  const validWordsRef = useRef(new Set());
   function showToast(msg, duration = 1400) {
     setMessage(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setMessage(""), duration);
   }
   const [shake, setShake] = useState(false);
+
+  function addValidWords(list = []) {
+    const set = validWordsRef.current;
+    list.forEach((w) => {
+      if (w && w.length === WORD_LENGTH) set.add(w);
+    });
+  }
 
   // keyboard handlers
   function handleKeyClick(letter) {
@@ -91,7 +99,7 @@ export default function App() {
     }
 
     // Validate against the loaded word list
-    if (!words.includes(guess)) {
+    if (validWordsRef.current.size && !validWordsRef.current.has(guess)) {
       showToast("Not a valid word");
       setShake(true);
       setTimeout(() => setShake(false), 360);
@@ -169,6 +177,8 @@ export default function App() {
   // load words CSV on mount
   useEffect(() => {
     async function load() {
+      validWordsRef.current = new Set();
+      let fallbackWords = [];
       try {
         const res = await fetch("/5_letters.csv");
         const txt = await res.text();
@@ -176,22 +186,64 @@ export default function App() {
           .split(/\r?\n/)
           .map((l) => l.trim())
           .filter(Boolean);
-        const parsed = lines
+        fallbackWords = lines
           .filter((l) => !/^\s*1,2,3,4,5/.test(l))
           .map((l) => l.split(",").join("").toLowerCase())
           .filter((w) => w.length === WORD_LENGTH);
-        setWords(parsed);
-        if (parsed.length) {
-          const idx = Math.floor(Math.random() * parsed.length);
-          const w = parsed[idx];
-          setSecret(w);
-          setSecretChars(w.split(""));
-        }
+        addValidWords(fallbackWords);
       } catch (err) {
         console.error("failed to load word list", err);
       }
+
+      // Try to fetch full Wordle lists (solutions + allowed guesses)
+      let secretPool = fallbackWords;
+      try {
+        const solutionsRes = await fetch(
+          "https://raw.githubusercontent.com/tabatkins/wordle-list/main/solutions"
+        );
+        if (solutionsRes.ok) {
+          const txt = await solutionsRes.text();
+          const list = txt
+            .split(/\r?\n/)
+            .map((w) => w.trim().toLowerCase())
+            .filter((w) => w.length === WORD_LENGTH);
+          if (list.length) {
+            secretPool = list;
+            addValidWords(list);
+          }
+        }
+      } catch (err) {
+        console.warn("failed to load extended solutions list", err);
+      }
+
+      try {
+        const allowedRes = await fetch(
+          "https://raw.githubusercontent.com/tabatkins/wordle-list/main/words"
+        );
+        if (allowedRes.ok) {
+          const txt = await allowedRes.text();
+          const list = txt
+            .split(/\r?\n/)
+            .map((w) => w.trim().toLowerCase())
+            .filter((w) => w.length === WORD_LENGTH);
+          addValidWords(list);
+        }
+      } catch (err) {
+        console.warn("failed to load extended allowed list", err);
+      }
+
+      if (secretPool.length) {
+        setWords(secretPool);
+        const idx = Math.floor(Math.random() * secretPool.length);
+        const w = secretPool[idx];
+        setSecret(w);
+        setSecretChars(w.split(""));
+      }
     }
     load();
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
   }, []);
 
   return (

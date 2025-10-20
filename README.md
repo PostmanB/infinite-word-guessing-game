@@ -14,12 +14,12 @@ Open http://localhost:5173 to play.
 
 ## Features
 
-- Random five-letter secrets chosen from the bundled CSV list.
-- Guess validation against the word list with an animated toast for invalid entries.
+- Random five-letter secrets chosen from the Wordle solutions list (falls back to the bundled CSV if offline).
+- Guess validation against the merged Wordle solution + allowed guess lists with an animated toast for invalid entries.
 - Tile flip animation, duplicate-letter handling, and on-screen keyboard feedback.
 - Mobile-friendly layout: board sized for small screens with a fixed bottom keyboard.
 - Score persists across rounds until reset.
 
 ## Word list
 
-The input CSV is lightly normalised to lowercase words of length five. Replace `public/5_letters.csv` with another list to customise the vocabulary.
+The app fetches the public Wordle solution and allowed-guess lists from [tabatkins/wordle-list](https://github.com/tabatkins/wordle-list). If the network fetch fails, it falls back to normalising `public/5_letters.csv`. Replace or extend that CSV to customise the offline vocabulary.
